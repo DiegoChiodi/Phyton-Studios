@@ -7,10 +7,11 @@ for i in range(vetor_size):
     vetor[i] = int(input('Digite um valor: '))
 
 found_pico = False
-
 ascend = 0
 pico_is_valid = False
 ascend_one = False
+dascend_one = False
+
 for i in range(1, vetor_size):
     if vetor[i-1] < vetor[i]:
         ascend = 1
@@ -29,7 +30,7 @@ for i in range(1, vetor_size):
         break
     else:
         if found_pico:
-            pass
+            ascend_one = True
         elif ascend_one:
             found_pico = True
             pico_is_valid = True
