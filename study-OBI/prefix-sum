@@ -1,0 +1,9 @@
+n_max = int(input())
+checks = int(input())
+
+ns = [0] * n_max
+
+for i in range(n_max):
+    ns[i] = int(input())
+
+prefix = [0] * (n_max + 1)
