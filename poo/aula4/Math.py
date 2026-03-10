@@ -5,12 +5,12 @@ def print_optinos():
     print("2 - arredondar para baixo")
     print("3 - arredondar para cima")
     print("4 - pegar parte inteira")
-    print("5 - elevar a x")
-    print("6 - sair do programa")
+    print("5 - elevar a 3ª")
+    print("6 - área do circulo (x é o raio)")
+    print("7 - sair do programa")
 
 while (True):
-    
-    num = input("Digite um número para modificalo")
+    num = float(input("Digite um número para modificalo. x = "))
 
     print_optinos()
 
@@ -28,4 +28,6 @@ while (True):
         case 5:
             print(num ** 3)
         case 6:
+            print(math.pi * num ** 2)
+        case 7:
             break
