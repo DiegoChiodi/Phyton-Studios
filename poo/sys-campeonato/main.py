@@ -79,8 +79,6 @@ def run():
     opcao = 8
     try:
         while(opcao != 0):
-            
-
             match (opcao):
                 case 1:
                     cad_jogador()
@@ -110,9 +108,10 @@ def run():
                     print("8. Exibir opções do programa")
                     print("0. Sair")
                     print("========================================")
-                case 0:
-                    break
-    
+                case _:
+                    print(f"{opcao} não é uma opção válida")
+                    print("A opção 8 mostra valores aceitos")
+                
             opcao = int(input("Escolha uma opção: "))
     
     except Exception as erro:
