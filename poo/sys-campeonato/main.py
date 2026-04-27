@@ -33,7 +33,7 @@ def add_jog_in_equipe():
     
     choosen_equ = int(input("Escolha o número de uma equipe: "))
     
-    if ((0 < choosen_equ and choosen_equ - 1 < len(equipes)) and (0 < choosen_jog and choosen_jog - 1 < len(jogadores))):
+    if ((0 < choosen_equ and choosen_equ - 1 < len(equipes)) and (0 < choosen_jog and choosen_jog - 1 < len(equipes[choosen_equ].jogadores))):
         if (equipes[choosen_equ] < 6):
             equipes[choosen_equ - 1].add_jogador(jogadores[choosen_jog - 1])
         else:
