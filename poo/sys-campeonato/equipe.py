@@ -8,7 +8,7 @@ class Equipe:
     
     def add_jogador(self, jogador):
         self.jogadors.append(jogador)
-        print(f"Jogador adicionado a equipe {self.nome} com sucesso!")
+        print(f"{jogador.nome} adicionado a equipe {self.nome} com sucesso!😊")
 
     def print_jogadors(self):
         if (not self.jogadors):

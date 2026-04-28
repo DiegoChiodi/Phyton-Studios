@@ -6,6 +6,12 @@ jogadores = []
 
 def cad_jogador():
     jogador = Jogador(input("Nome: "), input("turma: "), input("Nickname: "))
+    
+    for jog in jogadores:
+        if jogador.nickname == jog.nickname:
+            print("Jogador com nickname repetido, ação inválida ❌")
+            return
+
     jogadores.append(jogador)
     print("Jogador cadastrado com sucesso! 😊")
 
@@ -14,7 +20,7 @@ def cad_equipe():
     equipes.append(equipe)
     print("Equipe cadastrado com sucesso! 😊")
 
-def add_jog_in_equipe():
+def add_jog_in_equ():
     if (not jogadores):
         print(f"Não há nenhum jogador cadastrado ainda!🚨")
         return
@@ -26,20 +32,31 @@ def add_jog_in_equipe():
     for i in range(len(jogadores)):
         print(f"{i + 1}. {jogadores[i]}")
     
-    choosen_jog = int(input("Escolha o número de um jogador: "))
+    choosen_jog = int(input("Escolha o número de um jogador: ")) - 1
 
     for i in range(len(equipes)):
         print(f"{i + 1}. {equipes[i]}")
     
-    choosen_equ = int(input("Escolha o número de uma equipe: "))
+    choosen_equ = int(input("Escolha o número de uma equipe: ")) - 1
     
-    if ((0 < choosen_equ and choosen_equ - 1 < len(equipes)) and (0 < choosen_jog and choosen_jog - 1 < len(equipes[choosen_equ].jogadores))):
-        if (equipes[choosen_equ] < 6):
-            equipes[choosen_equ - 1].add_jogador(jogadores[choosen_jog - 1])
-        else:
-            print("A equipe já atingiu o limite de jogadores cadastrados! 🚨")
-    else:
-        print("Foi selecionado um número inválido")
+    if not (0 <= choosen_equ and choosen_equ < len(equipes)):
+        print("Foi selecionado um número inválido para a equipe")
+        return
+
+    if not (len(equipes[choosen_equ].jogadors) < 6):
+        print("A equipe já atingiu o limite de jogadores cadastrados! 🚨")
+        return
+        
+    if not (-1 < choosen_jog and choosen_jog < len(jogadores)):
+        print("Foi selecionado um número inválido para o jogador")
+        return
+
+    for jog in equipes[choosen_equ].jogadors:
+        if (jog == jogadores[choosen_jog]):
+            print("Jogador já está em outra equipe")
+            return
+    
+    equipes[choosen_equ].add_jogador(jogadores[choosen_jog])
 
 def list_equ():
     if (not equipes):
@@ -54,8 +71,26 @@ def list_jog():
         print(f"Nenhum jogador foi cadastrada ainda!🚨")
         return
 
-    for i in range(len(jogadores)):
-        print(f"{i + 1}. {jogadores[i]}")
+    if (not equipes):
+        print(f"Nenhuma equipe foi cadastrada ainda!🚨")
+        return
+    
+    for i in range(len(equipes)):
+        print(f"{i + 1}. {equipes[i]}")
+    
+    choosen_equ = int(input("Escolha o número de uma equipe: ")) - 1
+    
+    if not (0 <= choosen_equ and choosen_equ < len(equipes)):
+        print("Foi selecionado um número inválido para a equipe")
+        return
+
+    if not equipes[choosen_equ].jogadors:
+        print("Há equipe não tem jogadores")
+        return
+    
+    print(f"Jogadores da equipe {equipes[choosen_equ].nome}:")
+    for i in range(len(equipes[choosen_equ].jogadors)):
+        print(f"{i + 1}. {equipes[choosen_equ].jogadors[i]}")
 
 def buscar_jog():
     nome = input("Digite o nome do jogador: ")
@@ -75,8 +110,41 @@ def rem_jog():
         for j in len(equipes[i]):
             if equipes[i][j] == choosen_jog:
                 equipes[i].pop[j]
+    print("Jogador removido com sucesso! 😊")
+
+def rem_jog_in_equ():
+    if (not jogadores):
+        print(f"Não há nenhum jogador cadastrado ainda!🚨")
+        return
+    
+    if (not equipes):
+        print(f"Não há nenhuma equipe cadastrada ainda!🚨")
+        return
+
+    for i in range(len(equipes)):
+        print(f"{i + 1}. {equipes[i]}")
+    
+    choosen_equ = int(input("Escolha o número de uma equipe: ")) - 1
+    
+    if not (-1 < choosen_equ and choosen_equ < len(equipes)):
+        print("Foi selecionado um número inválido para a equipe")
+        return
+    
+    for i in range(len(equipes[choosen_equ].jogadors)):
+        print(f"{i + 1}. {equipes[choosen_equ].jogadors[i]}")
+    
+    choosen_jog = int(input("Escolha o número de um jogador: ")) - 1
+        
+    if not (0 <= choosen_jog and choosen_jog < len(equipes[choosen_equ].jogadors)):
+        print("Foi selecionado um número inválido para o jogador")
+        return
+    
+    equipes[choosen_equ].jogadors.remove(equipes[choosen_equ].jogadors[choosen_jog])
+    
+    print("Jogador removido da equipe com sucesso! 😊")
+
 def run():
-    opcao = 8
+    opcao = 9
     try:
         while(opcao != 0):
             match (opcao):
@@ -85,7 +153,7 @@ def run():
                 case 2:
                     cad_equipe()
                 case 3:
-                    add_jog_in_equipe()
+                    add_jog_in_equ()
                 case 4:
                     list_equ()
                 case 5:
@@ -95,6 +163,8 @@ def run():
                 case 7:
                     rem_jog()
                 case 8:
+                    rem_jog_in_equ()
+                case 9:
                     print("========================================")
                     print("  CAMPEONATO INTERCLASSE DE E-SPORTS")
                     print("========================================")
@@ -105,7 +175,8 @@ def run():
                     print("5. Listar jogadores de uma equipe")
                     print("6. Buscar jogador por nickname")
                     print("7. Remover jogador")
-                    print("8. Exibir opções do programa")
+                    print("8. Remover jogador de uma equipe")
+                    print("9. Exibir opções do programa")
                     print("0. Sair")
                     print("========================================")
                 case _:
