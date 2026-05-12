@@ -1,6 +1,6 @@
 from animal import *
 
-gato_1 = Gato("Tom", "gato", 4)
+gato_1 = Gato("Tom", "gato", 4, "Desconhecido")
 
 print(f"Meu gato é o {gato_1.nome}")
 gato_1.respirar()
@@ -12,5 +12,4 @@ cachorro.respirar()
 cachorro.abanar_rabo()
 
 gato_1.rugir()
-
 cachorro.rugir()

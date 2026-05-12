@@ -18,7 +18,11 @@ class Cachorrro(Animal):
         print("Au au")
 
 class Gato(Animal):
-    def ronronar(self):
+    def __init__(self, nome, especie, patas, dono):
+        super().__init__(nome, especie, patas)
+        self.dono = dono
+
+    def ronronar(self):        
         print("Gato ranronou")
         
     def rugir(self):
