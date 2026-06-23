@@ -6,8 +6,6 @@ from pyglet.math import Vec2
 SCREEN_WIDTH, SCREEN_HEIGHT = arcade.get_display_size()
 SCENE_SPEED = 100.0
 
-
-
 frog_sound = arcade.load_sound("frog_sound.mp3")
 
 class TelaInicial(arcade.View):
@@ -154,7 +152,7 @@ class Player(Entity):
         self.direction = Vec2((self.move_right - self.move_left) * 1.4, self.move_up - self.move_down)
 
 class GameScene(arcade.View):
-    def __init__(self):
+    def __init__(self, max_score : int = 0):
         super().__init__()
 
         arcade.set_background_color(arcade.color.GRAY)
@@ -164,6 +162,8 @@ class GameScene(arcade.View):
         self.player = Player()
         self.player.position = (SCREEN_WIDTH / 2, 100.0)
         self.obj_list.append(self.player)
+        self.score = 0
+        self.max_score = max_score
 
     def on_update(self, delta_time):
         self.obj_list.update(delta_time)         
@@ -174,15 +174,18 @@ class GameScene(arcade.View):
         for obj in self.obj_list:
             if isinstance(obj, Frog) and arcade.check_for_collision(self.player, obj):
                 self.obj_list.remove(obj)
+                self.score += 1
                 arcade.play_sound(frog_sound)
         for obj in self.obj_list:
             if isinstance(obj, Enemy) and arcade.check_for_collision(self.player, obj):
                 self.player.remove_from_sprite_lists()
-                self.window.show_view(GameOverView())
+                self.window.show_view(GameOverView(self.score, self.max_score))
 
     def on_draw(self):
         self.clear()
         self.obj_list.draw()
+        score_txt = arcade.Text(str(self.score), 50, SCREEN_HEIGHT - 50)
+        score_txt.draw()
     
     def spawn_frogs(self):
         if (random.randint(1, 90) == 1):
@@ -218,7 +221,7 @@ class GameScene(arcade.View):
             start_view = StartView()
             self.window.show_view(start_view)
         elif key == arcade.key.R:
-            game_scene = GameScene()
+            game_scene = GameScene(self.max_score)
             self.window.show_view(game_scene)
     
     def on_key_release(self, key, modifiers):
@@ -244,8 +247,10 @@ class StartView(arcade.View):
             self.window.show_view(game_scene)
 
 class GameOverView(arcade.View):
-    def __init__(self, window = None, background_color = arcade.color.GRAY):
-        super().__init__(window, background_color)
+    def __init__(self, score, max_score):
+        super().__init__(window = None, background_color = arcade.color.GRAY)
+        self.score = score
+        self.max_score = max_score
     
     def on_draw(self):
         self.clear()
@@ -254,12 +259,25 @@ class GameOverView(arcade.View):
             "Foi por pouco, pressione [Enter] para tentar novamente",
             SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, arcade.color.RED
         )
+        
+        txt_motivation = ""
 
+        if (self.score <= self.max_score):
+            txt_motivation = f"Está quase lá, você fez {self.score} e seu recorede é {self.max_score}!"
+        else:
+            txt_motivation = f"Parabéns! Seu novo recorde é {self.score}!"
+            self.max_score = self.score
+
+        motivation_txt = arcade.Text(
+            txt_motivation,
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2  - 20, arcade.color.RED
+        )
         start_txt.draw()
-    
+        motivation_txt.draw()
+
     def on_key_press(self, key, modifiers):
         if key == arcade.key.J or key == arcade.key.ENTER:
-            game_scene = GameScene()
+            game_scene = GameScene(self.max_score)
             self.window.show_view(game_scene)
 
 
