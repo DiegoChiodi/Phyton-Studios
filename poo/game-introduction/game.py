@@ -153,7 +153,7 @@ class Player(Entity):
     def set_direction(self):
         self.direction = Vec2((self.move_right - self.move_left) * 1.4, self.move_up - self.move_down)
 
-class GameWorld(arcade.View):
+class GameScene(arcade.View):
     def __init__(self):
         super().__init__()
 
@@ -178,6 +178,7 @@ class GameWorld(arcade.View):
         for obj in self.obj_list:
             if isinstance(obj, Enemy) and arcade.check_for_collision(self.player, obj):
                 self.player.remove_from_sprite_lists()
+                self.window.show_view(GameOverView())
 
     def on_draw(self):
         self.clear()
@@ -214,13 +215,16 @@ class GameWorld(arcade.View):
     def on_key_press(self, key, modifiers):
         self.player.handle_key_press(key)
         if key == arcade.key.ESCAPE:
-            start_window = StartWindow()
-            self.window.show_view(start_window)
+            start_view = StartView()
+            self.window.show_view(start_view)
+        elif key == arcade.key.R:
+            game_scene = GameScene()
+            self.window.show_view(game_scene)
     
     def on_key_release(self, key, modifiers):
         self.player.handle_key_release(key)
     
-class StartWindow(arcade.View):
+class StartView(arcade.View):
     def __init__(self, window = None, background_color = arcade.color.GRAY):
         super().__init__(window, background_color)
     
@@ -229,22 +233,42 @@ class StartWindow(arcade.View):
         
         start_txt = arcade.Text(
             "Pressione [Enter] para jogar",
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, arcade.color.GREEN_YELLOW
         )
 
         start_txt.draw()
     
     def on_key_press(self, key, modifiers):
         if key == arcade.key.J or key == arcade.key.ENTER:
-            game_world = GameWorld()
-            self.window.show_view(game_world)
+            game_scene = GameScene()
+            self.window.show_view(game_scene)
+
+class GameOverView(arcade.View):
+    def __init__(self, window = None, background_color = arcade.color.GRAY):
+        super().__init__(window, background_color)
     
+    def on_draw(self):
+        self.clear()
+
+        start_txt = arcade.Text(
+            "Foi por pouco, pressione [Enter] para tentar novamente",
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, arcade.color.RED
+        )
+
+        start_txt.draw()
+    
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.J or key == arcade.key.ENTER:
+            game_scene = GameScene()
+            self.window.show_view(game_scene)
+
+
 def execute():
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, title="Frog streak")
     
-    start_window = StartWindow()
+    start_view = StartView()
 
-    window.show_view(start_window)
+    window.show_view(start_view)
     
     arcade.run()
 
