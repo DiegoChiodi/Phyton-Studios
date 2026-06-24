@@ -8,6 +8,9 @@ SCENE_SPEED = 100.0
 
 frog_sound = arcade.load_sound("frog_sound.mp3")
 
+def lerp(a, b, t):
+    return a + (b - a) * t
+
 class TelaInicial(arcade.View):
     def __init__(self):
         super().__init__()
@@ -25,19 +28,22 @@ class Entity(arcade.Sprite):
 
     def set_direction(self):
         pass
-
-    def update(self, delta_time):
-        self.set_direction()
-
+    
+    def set_change(self, delta : float):
         self.change_x = self.speed * self.direction.x
         self.change_y = self.speed * self.direction.y
 
+    def update(self, delta):
+        self.set_direction()
+
+        self.set_change(delta)
+
         self.center_x += (
-            self.change_x * delta_time
+            self.change_x * delta
         )
 
         self.center_y += (
-            self.change_y * delta_time
+            self.change_y * delta
         )
 
         self.check_exit_x()
@@ -70,12 +76,12 @@ class EntScene(Entity):
     def __init__(self, filename, scale, speed: float = 0.0):
         super().__init__(filename, scale, speed)
     
-    def scene_move(self, delta_time):
-        self.center_y -= SCENE_SPEED * delta_time
+    def scene_move(self, delta):
+        self.center_y -= SCENE_SPEED * delta
 
-    def update(self, delta_time):
-        super().update(delta_time)
-        self.scene_move(delta_time)
+    def update(self, delta):
+        super().update(delta)
+        self.scene_move(delta)
     
     def check_exit_y(self):
         if (self.bottom < 0):
@@ -99,8 +105,8 @@ class Enemy(EntScene):
     def __init__(self, scale, speed : float = 0.0):
         super().__init__("player.png", scale, speed)
     
-    def update(self, delta_time):
-        super().update(delta_time)
+    def update(self, delta):
+        super().update(delta)
     
     def set_direction(self):
         self.direction = Vec2(0, -1.0)
@@ -110,7 +116,6 @@ class Enemy(EntScene):
             self.remove_from_sprite_lists()
 
 class Player(Entity):           
-
     def __init__(self):
         super().__init__("player.png", 1.5, 300.0)
 
@@ -118,6 +123,8 @@ class Player(Entity):
         self.move_right : bool = False
         self.move_up : bool = False
         self.move_down : bool = False
+
+        self.acceleration : float = 1.0
         
 
     def handle_key_press(self, key):
@@ -150,6 +157,10 @@ class Player(Entity):
     
     def set_direction(self):
         self.direction = Vec2((self.move_right - self.move_left) * 1.4, self.move_up - self.move_down)
+    
+    def set_change(self, delta):
+        self.change_x = lerp(self.change_x, self.direction.x * self.speed, 2 * delta)
+        self.change_y = lerp(self.change_y, self.direction.y * self.speed, delta)
 
 class GameScene(arcade.View):
     def __init__(self, max_score : int = 0):
@@ -262,7 +273,7 @@ class GameOverView(arcade.View):
         
         txt_motivation = ""
 
-        if (self.score <= self.max_score):
+        if (self.score < self.max_score):
             txt_motivation = f"Está quase lá, você fez {self.score} e seu recorede é {self.max_score}!"
         else:
             txt_motivation = f"Parabéns! Seu novo recorde é {self.score}!"
