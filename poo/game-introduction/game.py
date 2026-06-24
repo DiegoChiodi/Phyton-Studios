@@ -103,6 +103,19 @@ class Frog(EntScene):
 
 class Enemy(EntScene):
     def __init__(self, scale, speed : float = 0.0):
+        texture = ""
+
+        ale = random.randint(1, 3)
+
+        match(ale):
+            case 1:
+                texture = r"cars\blue_cart.png"
+            case 2:
+                texture = r"cars\brow_cart.png"
+            case 3:
+                texture = r"cars\green_cart.png"
+
+
         super().__init__("player.png", scale, speed)
     
     def update(self, delta):
@@ -160,7 +173,7 @@ class Player(Entity):
     
     def set_change(self, delta):
         self.change_x = lerp(self.change_x, self.direction.x * self.speed, 2 * delta)
-        self.change_y = lerp(self.change_y, self.direction.y * self.speed, delta)
+        self.change_y = lerp(self.change_y, self.direction.y * self.speed, 2 * delta)
 
 class GameScene(arcade.View):
     def __init__(self, max_score : int = 0):
@@ -249,7 +262,6 @@ class StartView(arcade.View):
             "Pressione [Enter] para jogar",
             SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, arcade.color.GREEN_YELLOW
         )
-
         start_txt.draw()
     
     def on_key_press(self, key, modifiers):
