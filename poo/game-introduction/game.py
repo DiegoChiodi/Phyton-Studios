@@ -111,12 +111,12 @@ class Enemy(EntScene):
             case 1:
                 texture = r"cars\blue_cart.png"
             case 2:
-                texture = r"cars\brow_cart.png"
+                texture = r"cars\brown_cart.png"
             case 3:
-                texture = r"cars\green_cart.png"
+                texture = r"cars\brown_cart.png" #Se eu deixar isso aq dps vou ter dor de cabeça <----------------------------------
 
+        super().__init__(texture, scale, speed)
 
-        super().__init__("player.png", scale, speed)
     
     def update(self, delta):
         super().update(delta)
@@ -141,31 +141,29 @@ class Player(Entity):
         
 
     def handle_key_press(self, key):
-        if key == arcade.key.A:
+        if key == arcade.key.A or key == arcade.key.LEFT:
             self.move_left = True
 
-        if key == arcade.key.D:
+        if key == arcade.key.D or key == arcade.key.RIGHT:
             self.move_right = True
         
-        if key == arcade.key.W:
+        if key == arcade.key.W or key == arcade.key.UP:
             self.move_up = True
         
-        if key == arcade.key.S:
+        if key == arcade.key.S or key == arcade.key.DOWN:
             self.move_down = True
-        
-
 
     def handle_key_release(self, key):
-        if key == arcade.key.A:
+        if key == arcade.key.A or key == arcade.key.LEFT:
             self.move_left = False
 
-        if key == arcade.key.D:
+        if key == arcade.key.D or key == arcade.key.RIGHT:
             self.move_right = False
         
-        if key == arcade.key.W:
+        if key == arcade.key.W or key == arcade.key.UP:
             self.move_up = False
         
-        if key == arcade.key.S:
+        if key == arcade.key.S or key == arcade.key.DOWN:
             self.move_down = False
     
     def set_direction(self):
@@ -185,9 +183,16 @@ class GameScene(arcade.View):
 
         self.player = Player()
         self.player.position = (SCREEN_WIDTH / 2, 100.0)
-        self.obj_list.append(self.player)
         self.score = 0
         self.max_score = max_score
+
+        self.rua = arcade.Sprite("Assets/rua.png")
+        self.rua.center_x = SCREEN_WIDTH // 2
+        self.rua.center_y = SCREEN_HEIGHT // 2
+
+
+        self.obj_list.append(self.rua)
+        self.obj_list.append(self.player)
 
     def on_update(self, delta_time):
         self.obj_list.update(delta_time)         
@@ -234,7 +239,7 @@ class GameScene(arcade.View):
             if (rua > 2):
                 enemy_angle = 180
                 enemy_speed *= 2
-            enemy = Enemy(2, enemy_speed)
+            enemy = Enemy(0.5, enemy_speed)
             enemy.position =  ((SCREEN_HEIGHT / 2 + (rua * 220.0) - 100), SCREEN_HEIGHT)
             enemy.angle = enemy_angle
             self.obj_list.append(enemy)
