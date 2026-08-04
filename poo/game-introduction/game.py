@@ -238,7 +238,7 @@ class GameScene(arcade.View):
     def on_draw(self):
         self.clear()
         self.obj_list.draw()
-        score_txt = arcade.Text(str(self.score), 50, SCREEN_HEIGHT - 50)
+        score_txt = arcade.Text(str(self.score), 50, SCREEN_HEIGHT - 50, arcade.color.WHITE, 25)
         score_txt.draw()
     
     def spawn_frogs(self):
