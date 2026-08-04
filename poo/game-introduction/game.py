@@ -6,6 +6,8 @@ from pyglet.math import Vec2
 SCREEN_WIDTH, SCREEN_HEIGHT = arcade.get_display_size()
 SCENE_SPEED = 100.0
 
+ROAD_1 = 600
+
 frog_sound = arcade.load_sound("frog_sound.mp3")
 
 def lerp(a, b, t):
@@ -17,8 +19,15 @@ class TelaInicial(arcade.View):
     
     def on_draw(self):
         self.clear()
-        arcade.draw_text("Pressione enter para jogar", SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, arcade.color.GREEN, 20)
-        return super().on_draw()
+        arcade.draw_text(
+            text="Pressione Enter para jogar",
+            x=SCREEN_WIDTH // 2,
+            y=SCREEN_HEIGHT // 2,
+            color=arcade.color.GREEN,
+            font_size=100,
+            anchor_x="center",
+            anchor_y="center",
+        )
 
 class Entity(arcade.Sprite):
     def __init__(self, filename, scale, speed: float = 0.0):
@@ -72,8 +81,9 @@ class Entity(arcade.Sprite):
     def on_exit_window(self):
         pass
 
+
 class EntScene(Entity):
-    def __init__(self, filename, scale, speed: float = 0.0):
+    def __init__(self, filename, scale : float = 1.0, speed: float = 0.0):
         super().__init__(filename, scale, speed)
     
     def scene_move(self, delta):
@@ -88,7 +98,11 @@ class EntScene(Entity):
             self.change_y = 0
             self.bottom = 0
             self.on_exit_window()
-    
+
+class Road(EntScene):
+    def check_exit_y(self):
+        pass
+
 class Frog(EntScene):
     def __init__(self, speed : float = 0.0):
         super().__init__("frog.png", 0.2, speed)
@@ -130,7 +144,7 @@ class Enemy(EntScene):
 
 class Player(Entity):           
     def __init__(self):
-        super().__init__("player.png", 1.5, 300.0)
+        super().__init__("player.png", 1.8, 300.0)
 
         self.move_left : bool = False
         self.move_right : bool = False
@@ -186,12 +200,16 @@ class GameScene(arcade.View):
         self.score = 0
         self.max_score = max_score
 
-        self.rua = arcade.Sprite("Assets/rua.png")
+        self.rua = Road("Assets/road.png")
         self.rua.center_x = SCREEN_WIDTH // 2
-        self.rua.center_y = SCREEN_HEIGHT // 2
+        self.rua.bottom = 0
 
+        self.rua2 = Road("Assets/road.png")
+        self.rua2.center_x = SCREEN_WIDTH // 2
+        self.rua2.bottom = self.rua.top
 
         self.obj_list.append(self.rua)
+        self.obj_list.append(self.rua2)
         self.obj_list.append(self.player)
 
     def on_update(self, delta_time):
@@ -205,10 +223,17 @@ class GameScene(arcade.View):
                 self.obj_list.remove(obj)
                 self.score += 1
                 arcade.play_sound(frog_sound)
+
         for obj in self.obj_list:
             if isinstance(obj, Enemy) and arcade.check_for_collision(self.player, obj):
                 self.player.remove_from_sprite_lists()
                 self.window.show_view(GameOverView(self.score, self.max_score))
+
+        if self.rua.top < 0.0:
+            self.rua.bottom = self.rua2.top - 100
+
+        if self.rua2.top < 0.0:
+            self.rua2.bottom = self.rua.top - 100
 
     def on_draw(self):
         self.clear()
@@ -237,12 +262,25 @@ class GameScene(arcade.View):
             enemy_speed = enemy_speed = random.randint(50,100)
             enemy_angle = 0
             if (rua > 2):
-                enemy_angle = 180
                 enemy_speed *= 2
-            enemy = Enemy(0.5, enemy_speed)
-            enemy.position =  ((SCREEN_HEIGHT / 2 + (rua * 220.0) - 100), SCREEN_HEIGHT)
+            else:
+                enemy_angle = 180
+            enemy = Enemy(0.75, enemy_speed)
+            enemy.center_y = SCREEN_HEIGHT
+
+            match(rua):
+                case 1:
+                    enemy.center_x = 600.0
+                case 2:
+                    enemy.center_x = 825.0
+                case 3:
+                    enemy.center_x = 1090.0
+                case 4:
+                    enemy.center_x = 1325
             enemy.angle = enemy_angle
             self.obj_list.append(enemy)
+
+        
     
     def on_key_press(self, key, modifiers):
         self.player.handle_key_press(key)
@@ -263,11 +301,15 @@ class StartView(arcade.View):
     def on_draw(self):
         self.clear()
         
-        start_txt = arcade.Text(
-            "Pressione [Enter] para jogar",
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, arcade.color.GREEN_YELLOW
+        arcade.draw_text(
+            text="Pressione Enter para jogar",
+            x=SCREEN_WIDTH // 2,
+            y=SCREEN_HEIGHT // 2,
+            color=arcade.color.GREEN,
+            font_size=100,
+            anchor_x="center",
+            anchor_y="center",
         )
-        start_txt.draw()
     
     def on_key_press(self, key, modifiers):
         if key == arcade.key.J or key == arcade.key.ENTER:
@@ -285,7 +327,7 @@ class GameOverView(arcade.View):
 
         start_txt = arcade.Text(
             "Foi por pouco, pressione [Enter] para tentar novamente",
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, arcade.color.RED
+            SCREEN_WIDTH // 2 - 600, SCREEN_HEIGHT // 2, arcade.color.RED, 40
         )
         
         txt_motivation = ""
@@ -298,7 +340,7 @@ class GameOverView(arcade.View):
 
         motivation_txt = arcade.Text(
             txt_motivation,
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2  - 20, arcade.color.RED
+            SCREEN_WIDTH // 2 - 400, SCREEN_HEIGHT // 2  - 200, arcade.color.RED, 40
         )
         start_txt.draw()
         motivation_txt.draw()
