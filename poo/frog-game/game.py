@@ -200,11 +200,11 @@ class GameScene(arcade.View):
         self.score = 0
         self.max_score = max_score
 
-        self.rua = Road("Assets/road.png")
+        self.rua = Road("Assets/road2.png")
         self.rua.center_x = SCREEN_WIDTH // 2
         self.rua.bottom = 0
 
-        self.rua2 = Road("Assets/road.png")
+        self.rua2 = Road("Assets/road2.png")
         self.rua2.center_x = SCREEN_WIDTH // 2
         self.rua2.bottom = self.rua.top
 
