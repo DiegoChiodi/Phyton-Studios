@@ -289,27 +289,34 @@ class GameScene(arcade.View):
        )
 
         self.time = 60.0
+        self.phys_perm = True
         
     def on_update(self, delta_time):
-        self.obj_list.update(delta_time)
-        self.physics_engine.update()
-        self.physics_engine2.update()
 
-        if self.physics_engine.can_jump():
-            self.player.recharge_jump()
+        if self.phys_perm:            
+            self.obj_list.update(delta_time)
+            self.physics_engine.update()
+            self.physics_engine2.update()
 
-        if self.physics_engine2.can_jump():
-            self.player2.recharge_jump()
+            if self.physics_engine.can_jump():
+                self.player.recharge_jump()
 
-        if arcade.check_for_collision(self.player, self.player2):
-            if self.player.hot and not self.player.on_stop:
-                self.player2.get_hot()
-                self.player.hot = False
-            elif self.player2.hot and not self.player2.on_stop:
-                self.player.get_hot()
-                self.player2.hot = False
+            if self.physics_engine2.can_jump():
+                self.player2.recharge_jump()
 
-        self.time -= delta_time
+            if arcade.check_for_collision(self.player, self.player2):
+                if self.player.hot and not self.player.on_stop:
+                    self.player2.get_hot()
+                    self.player.hot = False
+                elif self.player2.hot and not self.player2.on_stop:
+                    self.player.get_hot()
+                    self.player2.hot = False
+
+            self.time -= delta_time
+
+        if self.time <= 0.0:
+            self.phys_perm = False
+            self.time = 0.0
 
     def on_draw(self):
         self.clear()
@@ -317,7 +324,7 @@ class GameScene(arcade.View):
         self.list_blocks.draw()
 
         self.moeda_list.draw()
-        self.text = arcade.draw_text(
+        arcade.draw_text(
             text=f"Time: {int(self.time)}",
             x=SCREEN_WIDTH - 200,
             y=SCREEN_HEIGHT - 50,
@@ -327,10 +334,31 @@ class GameScene(arcade.View):
             anchor_y="center",
         )
 
+        if not self.phys_perm:
+            jogador = 2 if self.player.hot else 1
+            arcade.draw_text(
+                f"O jogador {jogador} ganhou!",
+                x=SCREEN_WIDTH // 2,
+                y=SCREEN_HEIGHT // 2,
+                color=arcade.color.RED,
+                font_size=100,
+                anchor_x="center",
+                anchor_y="center"
+            )
+
+
+        
+
 
     def on_key_press(self, key, modifiers):
         self.player.handle_key_press(key)
         self.player2.handle_key_press(key)
+
+        if (key == arcade.key.R or key == arcade.key.ENTER or key == arcade.key.SPACE) and self.phys_perm:
+            game_scene = GameScene()
+            self.window.show_view(game_scene)
+            
+
 
 
     def on_key_release(self, key, modifiers):
