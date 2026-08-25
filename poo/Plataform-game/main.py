@@ -8,6 +8,10 @@ SCREEN_WIDTH, SCREEN_HEIGHT = arcade.get_display_size()
 def lerp(a, b, t):
     return a + (b - a) * t
 
+class Moeda(arcade.Sprite):
+    def __init__(self):
+        super().__init__("assets/images.jpg", 0.5)
+
 class Entity(arcade.Sprite):
     def __init__(self, filename, scale, speed: float = 0.0):
         super().__init__(filename, scale)
@@ -66,8 +70,8 @@ class Block(arcade.Sprite):
         self.center_y = y
 
 class Player(Entity):           
-    def __init__(self):
-        super().__init__("assets/player.png", 0.5, 3.0)
+    def __init__(self): 
+        super().__init__("assets/player_happy_1.png", 2.0, 3.0)
 
         self.move_left : bool = False
         self.move_right : bool = False
@@ -79,38 +83,126 @@ class Player(Entity):
 
         self.speed = 10
 
+        self.jumps : float = 2
+        self.JUMP_MAX : float = 2
+        self.last_move_up = self.move_up
+
+        self.hot = False
+
+        self.hot_timer = 0.0
+        self.HOT_DURATION = 2.0
+        self.on_stop = False
+
     def handle_key_press(self, key):
-        if key == arcade.key.A or key == arcade.key.LEFT:
+        if key == arcade.key.A:
             self.move_left = True
 
-        if key == arcade.key.D or key == arcade.key.RIGHT:
+        if key == arcade.key.D:
             self.move_right = True
-            
-            self.move_up = True
         
-        if key == arcade.key.S or key == arcade.key.DOWN:
+        if key == arcade.key.S:
             self.move_down = True
 
+        if key == arcade.key.W:
+            self.move_up = True
+            
+
     def handle_key_release(self, key):
-        if key == arcade.key.A or key == arcade.key.LEFT:
+        if key == arcade.key.A:
             self.move_left = False
 
-        if key == arcade.key.D or key == arcade.key.RIGHT:
+        if key == arcade.key.D:
             self.move_right = False
         
-        if key == arcade.key.W or key == arcade.key.UP:
+        if key == arcade.key.W:
             self.move_up = False
         
-        if key == arcade.key.S or key == arcade.key.DOWN:
+        if key == arcade.key.S:
             self.move_down = False
 
+    def update(self, delta):
+        super().update(delta)
+
+        if self.last_move_up != self.move_up and self.move_up:
+            self.jump()
+
+        self.last_move_up = self.move_up
+
+        self.update_texture()
+
+        if self.on_stop:
+            if self.hot_timer >= self.HOT_DURATION:
+                self.on_stop = False
+                self.hot_timer = 0.0
+            else:
+                self.hot_timer += delta
+
     def set_direction(self):
+        if self.on_stop:
+            return
         self.direction = Vec2((self.move_right - self.move_left), self.move_up)
+        self.scale_x = 2 if self.move_right else -2 if self.move_left else self.scale_x
     
     def set_change(self, delta):
         self.change_x = lerp(self.change_x, self.direction.x * self.speed, 10 * delta)
 
+    def jump(self):
+        if self.on_stop:
+            return
+        if self.jumps > 0:
+            self.change_y = self.JUMP_FORCE
+            self.jumps -= 1
+
+    def recharge_jump(self):
+        self.jumps = self.JUMP_MAX
+
+    def update_texture(self):
+        if self.hot:
+            self.texture = arcade.load_texture("assets/player_angry_1.png")
+        else:
+            self.texture = arcade.load_texture("assets/player_happy_1.png")
+
+    def get_hot(self):
+        self.hot = True
+        self.on_stop = True
+
+        self.direction = Vec2(0.0, 0.0)
+
+class Player2(Player):
+    def handle_key_press(self, key):
+        if key == arcade.key.LEFT:
+            self.move_left = True
+
+        if key == arcade.key.RIGHT:
+            self.move_right = True
+
+        if key == arcade.key.UP:
+            self.move_up = True
+        
+        if key == arcade.key.DOWN:
+            self.move_down = True
+
+    def handle_key_release(self, key):
+        if key == arcade.key.LEFT:
+            self.move_left = False
+
+        if key == arcade.key.RIGHT:
+            self.move_right = False
+        
+        if key == arcade.key.UP:
+            self.move_up = False
+        
+        if key == arcade.key.DOWN:
+            self.move_down = False
+
+    
+    def update_texture(self):
+        if self.hot:
+            self.texture = arcade.load_texture("assets/player_angry_2.png")
+        else:
+            self.texture = arcade.load_texture("assets/player_happy_2.png")
             
+
 class StartView(arcade.View):
     def __init__(self, window = None, background_color = arcade.color.GRAY):
         super().__init__(window, background_color)
@@ -136,21 +228,38 @@ class StartView(arcade.View):
 class GameScene(arcade.View):
     def __init__(self):
         super().__init__()
+        self.score = 0
 
-        arcade.set_background_color(arcade.color.GRAY)
+        self.moeda_list = arcade.SpriteList()
+
+        arcade.set_background_color(arcade.color.SKY_BLUE)
 
         self.obj_list = arcade.SpriteList()
 
         self.player = Player()
         self.player.position = (200, 200)
         self.obj_list.append(self.player)
-        
+
+        self.player2 = Player2()
+        self.player2.position = (400, 200)
+        self.obj_list.append(self.player2)
+
+        random.seed()
+        temp = random.randInt(0, 1)
+
+        if temp == 0:
+            self.player.hot = True
+        else:
+            self.player2.hot = True
+
         self.GRAVITY = 1.0
 
         self.list_blocks = arcade.SpriteList()
         for x in range(32, SCREEN_WIDTH + 32, 64):
             self.bloco = Block(x=x, y=64)
             self.list_blocks.append(self.bloco)
+
+            
 
         self.bloco = Block(SCREEN_WIDTH / 2, 350)
         self.list_blocks.append(self.bloco)
@@ -173,37 +282,60 @@ class GameScene(arcade.View):
             platforms=self.list_blocks,
             gravity_constant=self.GRAVITY
        )
-        
+        self.physics_engine2 = arcade.PhysicsEnginePlatformer(
+            player_sprite=self.player2,
+            platforms=self.list_blocks,
+            gravity_constant=self.GRAVITY
+       )
 
-        
-        self.jump : float = 2
-        self.JUMP_MAX : float = 2
-
-
-        
+        self.time = 60.0
         
     def on_update(self, delta_time):
         self.obj_list.update(delta_time)
         self.physics_engine.update()
+        self.physics_engine2.update()
 
         if self.physics_engine.can_jump():
-            self.jump = self.JUMP_MAX
+            self.player.recharge_jump()
+
+        if self.physics_engine2.can_jump():
+            self.player2.recharge_jump()
+
+        if arcade.check_for_collision(self.player, self.player2):
+            if self.player.hot and not self.player.on_stop:
+                self.player2.get_hot()
+                self.player.hot = False
+            elif self.player2.hot and not self.player2.on_stop:
+                self.player.get_hot()
+                self.player2.hot = False
+
+        self.time -= delta_time
 
     def on_draw(self):
         self.clear()
         self.obj_list.draw()
         self.list_blocks.draw()
 
+        self.moeda_list.draw()
+        self.text = arcade.draw_text(
+            text=f"Time: {int(self.time)}",
+            x=SCREEN_WIDTH - 200,
+            y=SCREEN_HEIGHT - 50,
+            color=arcade.color.BLACK,
+            font_size=30,
+            anchor_x="center",
+            anchor_y="center",
+        )
+        self
+
     def on_key_press(self, key, modifiers):
         self.player.handle_key_press(key)
-        
-        if key == arcade.key.W or key == arcade.key.UP:
-            if self.jump > 0:
-                self.player.change_y = self.player.JUMP_FORCE
-                self.jump -= 1
+        self.player2.handle_key_press(key)
+
 
     def on_key_release(self, key, modifiers):
         self.player.handle_key_release(key)
+        self.player2.handle_key_release(key)
 
 
 def execute():
