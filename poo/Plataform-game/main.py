@@ -222,15 +222,12 @@ class StartView(arcade.View):
     
     def on_key_press(self, key, modifiers):
         if key == arcade.key.J or key == arcade.key.ENTER:
-            game_scene = GameScene()
+            game_scene = GameSceneBase()
             self.window.show_view(game_scene)
 
-class GameScene(arcade.View):
+class GameSceneBase(arcade.View):
     def __init__(self):
         super().__init__()
-        self.score = 0
-
-        self.moeda_list = arcade.SpriteList()
 
         arcade.set_background_color(arcade.color.SKY_BLUE)
 
@@ -254,12 +251,29 @@ class GameScene(arcade.View):
 
         self.GRAVITY = 1.0
 
+        
+        self.set_blocks()
+        self.physics_engine = arcade.PhysicsEnginePlatformer(
+            player_sprite=self.player,
+            platforms=self.list_blocks,
+            gravity_constant=self.GRAVITY
+        )
+
+        self.physics_engine2 = arcade.PhysicsEnginePlatformer(
+            player_sprite=self.player2,
+            platforms=self.list_blocks,
+            gravity_constant=self.GRAVITY
+        )
+
+    def set_blocks(self):
+        self.time = 60.0
+        self.phys_perm = True
+
         self.list_blocks = arcade.SpriteList()
         for x in range(32, SCREEN_WIDTH + 32, 64):
             self.bloco = Block(x=x, y=64)
             self.list_blocks.append(self.bloco)
 
-            
 
         self.bloco = Block(SCREEN_WIDTH / 2, 350)
         self.list_blocks.append(self.bloco)
@@ -275,24 +289,8 @@ class GameScene(arcade.View):
 
         self.bloco = Block(SCREEN_WIDTH / 2 - 500, 850)
         self.list_blocks.append(self.bloco)
-
-        
-        self.physics_engine = arcade.PhysicsEnginePlatformer(
-            player_sprite=self.player,
-            platforms=self.list_blocks,
-            gravity_constant=self.GRAVITY
-       )
-        self.physics_engine2 = arcade.PhysicsEnginePlatformer(
-            player_sprite=self.player2,
-            platforms=self.list_blocks,
-            gravity_constant=self.GRAVITY
-       )
-
-        self.time = 60.0
-        self.phys_perm = True
         
     def on_update(self, delta_time):
-
         if self.phys_perm:            
             self.obj_list.update(delta_time)
             self.physics_engine.update()
@@ -323,7 +321,6 @@ class GameScene(arcade.View):
         self.obj_list.draw()
         self.list_blocks.draw()
 
-        self.moeda_list.draw()
         arcade.draw_text(
             text=f"Time: {int(self.time)}",
             x=SCREEN_WIDTH - 200,
@@ -347,22 +344,19 @@ class GameScene(arcade.View):
                 anchor_y="center"
             )
 
-
-        
-
-
     def on_key_press(self, key, modifiers):
         self.player.handle_key_press(key)
         self.player2.handle_key_press(key)
 
         if (key == arcade.key.R or key == arcade.key.ENTER or key == arcade.key.SPACE) and not self.phys_perm:
-            game_scene = GameScene()
+            game_scene = GameSceneBase()
             self.window.show_view(game_scene)
             
     def on_key_release(self, key, modifiers):
         self.player.handle_key_release(key)
         self.player2.handle_key_release(key)
 
+#class Map_1(GameSceneBase):
 
 def execute():
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, title="Frog streak")
