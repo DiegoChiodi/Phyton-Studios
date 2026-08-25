@@ -336,11 +336,12 @@ class GameScene(arcade.View):
 
         if not self.phys_perm:
             jogador = 2 if self.player.hot else 1
+            color = arcade.color.RED if self.player.hot else arcade.color.BLUE
             arcade.draw_text(
                 f"O jogador {jogador} ganhou!",
                 x=SCREEN_WIDTH // 2,
                 y=SCREEN_HEIGHT // 2,
-                color=arcade.color.RED,
+                color=color,
                 font_size=100,
                 anchor_x="center",
                 anchor_y="center"
@@ -354,13 +355,10 @@ class GameScene(arcade.View):
         self.player.handle_key_press(key)
         self.player2.handle_key_press(key)
 
-        if (key == arcade.key.R or key == arcade.key.ENTER or key == arcade.key.SPACE) and self.phys_perm:
+        if (key == arcade.key.R or key == arcade.key.ENTER or key == arcade.key.SPACE) and not self.phys_perm:
             game_scene = GameScene()
             self.window.show_view(game_scene)
             
-
-
-
     def on_key_release(self, key, modifiers):
         self.player.handle_key_release(key)
         self.player2.handle_key_release(key)
