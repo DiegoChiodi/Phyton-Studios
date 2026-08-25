@@ -245,7 +245,7 @@ class GameScene(arcade.View):
         self.obj_list.append(self.player2)
 
         random.seed()
-        temp = random.randInt(0, 1)
+        temp = random.randint(0, 1)
 
         if temp == 0:
             self.player.hot = True
@@ -326,7 +326,7 @@ class GameScene(arcade.View):
             anchor_x="center",
             anchor_y="center",
         )
-        self
+
 
     def on_key_press(self, key, modifiers):
         self.player.handle_key_press(key)
