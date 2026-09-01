@@ -123,6 +123,8 @@ class Player(Entity):
     def update(self, delta):
         super().update(delta)
 
+        self.state_machine()
+        
         if self.last_move_up != self.move_up and self.move_up:
             self.jump()
 
@@ -167,6 +169,29 @@ class Player(Entity):
         self.on_stop = True
 
         self.direction = Vec2(0.0, 0.0)
+
+    def state_machine(self):
+
+        if self.change_y != 0:
+            self.jump_ani()
+            return
+
+        if self.center_x == 0:
+            self.idle_ani()
+            return
+        
+
+        self.walk_ani()
+
+    def walk_ani(self):
+        pass
+
+    def jump_ani(self):
+        pass
+
+    def idle_ani(self):
+        pass
+
 
 class Player2(Player):
     def handle_key_press(self, key):
