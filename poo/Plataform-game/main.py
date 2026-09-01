@@ -124,7 +124,7 @@ class Player(Entity):
         super().update(delta)
 
         self.state_machine()
-        
+
         if self.last_move_up != self.move_up and self.move_up:
             self.jump()
 
@@ -247,7 +247,7 @@ class StartView(arcade.View):
     
     def on_key_press(self, key, modifiers):
         if key == arcade.key.J or key == arcade.key.ENTER:
-            game_scene = GameSceneBase()
+            game_scene = Map_2()
             self.window.show_view(game_scene)
 
 class GameSceneBase(arcade.View):
@@ -259,11 +259,11 @@ class GameSceneBase(arcade.View):
         self.obj_list = arcade.SpriteList()
 
         self.player = Player()
-        self.player.position = (200, 200)
-        self.obj_list.append(self.player)
-
         self.player2 = Player2()
-        self.player2.position = (400, 200)
+
+        self.player.position, self.player2.position = self.set_players_pos()
+
+        self.obj_list.append(self.player)
         self.obj_list.append(self.player2)
 
         random.seed()
@@ -278,6 +278,7 @@ class GameSceneBase(arcade.View):
 
         
         self.set_blocks()
+
         self.physics_engine = arcade.PhysicsEnginePlatformer(
             player_sprite=self.player,
             platforms=self.list_blocks,
@@ -291,29 +292,10 @@ class GameSceneBase(arcade.View):
         )
 
     def set_blocks(self):
-        self.time = 60.0
-        self.phys_perm = True
+        pass
 
-        self.list_blocks = arcade.SpriteList()
-        for x in range(32, SCREEN_WIDTH + 32, 64):
-            self.bloco = Block(x=x, y=64)
-            self.list_blocks.append(self.bloco)
-
-
-        self.bloco = Block(SCREEN_WIDTH / 2, 350)
-        self.list_blocks.append(self.bloco)
-
-        self.bloco = Block(SCREEN_WIDTH / 2 + 250, 600)
-        self.list_blocks.append(self.bloco)
-
-        self.bloco = Block(SCREEN_WIDTH / 2 + 500, 850)
-        self.list_blocks.append(self.bloco)
-
-        self.bloco = Block(SCREEN_WIDTH / 2 - 250, 600)
-        self.list_blocks.append(self.bloco)
-
-        self.bloco = Block(SCREEN_WIDTH / 2 - 500, 850)
-        self.list_blocks.append(self.bloco)
+    def set_players_pos(self):
+        return (200, 200), (400, 200)
         
     def on_update(self, delta_time):
         if self.phys_perm:            
@@ -381,7 +363,65 @@ class GameSceneBase(arcade.View):
         self.player.handle_key_release(key)
         self.player2.handle_key_release(key)
 
-#class Map_1(GameSceneBase):
+class Map_1(GameSceneBase):
+    def set_blocks(self):
+        self.time = 60.0
+        self.phys_perm = True
+
+        self.list_blocks = arcade.SpriteList()
+        for x in range(32, SCREEN_WIDTH + 32, 64):
+            self.bloco = Block(x=x, y=64)
+            self.list_blocks.append(self.bloco)
+
+
+        self.bloco = Block(SCREEN_WIDTH / 2, 350)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(SCREEN_WIDTH / 2 + 250, 600)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(SCREEN_WIDTH / 2 + 500, 850)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(SCREEN_WIDTH / 2 - 250, 600)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(SCREEN_WIDTH / 2 - 500, 850)
+        self.list_blocks.append(self.bloco)
+
+class Map_2(GameSceneBase):
+    def set_blocks(self):
+        self.time = 60.0
+        self.phys_perm = True
+
+        self.list_blocks = arcade.SpriteList()
+
+        # Chão
+        for x in range(32, SCREEN_WIDTH + 32, 64):
+            self.bloco = Block(x=x, y=64)
+            self.list_blocks.append(self.bloco)
+
+        # Plataformas
+        self.bloco = Block(180, 250)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(450, 250)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(720, 400)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(1000, 300)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(750, 600)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(450, 550)
+        self.list_blocks.append(self.bloco)
+
+        self.bloco = Block(180, 700)
+        self.list_blocks.append(self.bloco)
 
 def execute():
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, title="Frog streak")
