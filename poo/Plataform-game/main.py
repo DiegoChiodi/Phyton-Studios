@@ -143,7 +143,7 @@ class Player(Entity):
         if self.on_stop:
             return
         self.direction = Vec2((self.move_right - self.move_left), self.move_up)
-        self.scale_x = 2 if self.move_right else -2 if self.move_left else self.scale_x
+        self.scale_x = 1 * self.scale[0] if self.move_right else -1 * self.scale[0] if self.move_left else self.scale_x
     
     def set_change(self, delta):
         self.change_x = lerp(self.change_x, self.direction.x * self.speed, 10 * delta)
