@@ -8,7 +8,6 @@ class BaseModel(Model):
         database = db
 
 class User(BaseModel):
-
     name = CharField()
     contact = CharField()
     date = DateTimeField(default=datetime.datetime.now)
@@ -68,6 +67,10 @@ while True:
                 querry.execute()
             else:
                 print("Senha incorreta")
+        
         case 7:
             print("Saindo...")
             break
+        case 8:
+            User.delete().execute()
+            print("Todos os contatos foram excluídos")

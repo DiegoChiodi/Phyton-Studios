@@ -1,5 +1,6 @@
 import arcade
 import random
+import peewee
 
 from pyglet.math import Vec2
 
@@ -10,24 +11,27 @@ ROAD_1 = 600
 
 frog_sound = arcade.load_sound("frog_sound.mp3")
 
+#------------------------------------------------
+db = peewee.SqliteDatabase("ranking.db")
+
+class BaseModel(peewee.Model):
+    class Meta:
+        database = db
+
+class User(BaseModel):
+    name = peewee.CharField()
+    max_score = peewee.IntegerField()
+
+db.connect()
+db.create_tables([User])
+#------------------------------------------------
+
+def search_top_10():
+    top_10 = User.select().order_by(User.max_score.desc()).limit(10)
+    return top_10
+
 def lerp(a, b, t):
     return a + (b - a) * t
-
-class TelaInicial(arcade.View):
-    def __init__(self):
-        super().__init__()
-    
-    def on_draw(self):
-        self.clear()
-        arcade.draw_text(
-            text="Pressione Enter para jogar",
-            x=SCREEN_WIDTH // 2,
-            y=SCREEN_HEIGHT // 2,
-            color=arcade.color.GREEN,
-            font_size=100,
-            anchor_x="center",
-            anchor_y="center",
-        )
 
 class Entity(arcade.Sprite):
     def __init__(self, filename, scale, speed: float = 0.0):
@@ -80,7 +84,6 @@ class Entity(arcade.Sprite):
 
     def on_exit_window(self):
         pass
-
 
 class EntScene(Entity):
     def __init__(self, filename, scale : float = 1.0, speed: float = 0.0):
@@ -297,22 +300,28 @@ class GameScene(arcade.View):
 class StartView(arcade.View):
     def __init__(self, window = None, background_color = arcade.color.GRAY):
         super().__init__(window, background_color)
+        self.is_login = False
     
     def on_draw(self):
         self.clear()
-        
-        arcade.draw_text(
-            text="Pressione Enter para jogar",
-            x=SCREEN_WIDTH // 2,
-            y=SCREEN_HEIGHT // 2,
-            color=arcade.color.GREEN,
-            font_size=100,
-            anchor_x="center",
-            anchor_y="center",
-        )
+
+        if self.is_login:
+            text = arcade.Text(
+                text="Pressione Enter para jogar",
+                x=SCREEN_WIDTH // 2,
+                y=SCREEN_HEIGHT // 2,
+                color=arcade.color.GREEN,
+                font_size=100,
+                anchor_x="center",
+                anchor_y="center",
+            )
+
+            text.draw()
+        else:
+            pass
     
     def on_key_press(self, key, modifiers):
-        if key == arcade.key.J or key == arcade.key.ENTER:
+        if (key == arcade.key.J or key == arcade.key.ENTER) and self.is_login:
             game_scene = GameScene()
             self.window.show_view(game_scene)
 
@@ -327,7 +336,7 @@ class GameOverView(arcade.View):
 
         start_txt = arcade.Text(
             "Foi por pouco, pressione [Enter] para tentar novamente",
-            SCREEN_WIDTH // 2 - 600, SCREEN_HEIGHT // 2, arcade.color.RED, 40
+            SCREEN_WIDTH // 2 - 600, SCREEN_HEIGHT // 2, arcade.color.GREEN, 40
         )
         
         txt_motivation = ""
@@ -340,7 +349,7 @@ class GameOverView(arcade.View):
 
         motivation_txt = arcade.Text(
             txt_motivation,
-            SCREEN_WIDTH // 2 - 400, SCREEN_HEIGHT // 2  - 200, arcade.color.RED, 40
+            SCREEN_WIDTH // 2 - 400, SCREEN_HEIGHT // 2  - 200, arcade.color.GREEN, 40
         )
         start_txt.draw()
         motivation_txt.draw()
