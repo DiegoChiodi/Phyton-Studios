@@ -5,7 +5,7 @@ import peewee
 from pyglet.math import Vec2
 
 SCREEN_WIDTH, SCREEN_HEIGHT = arcade.get_display_size()
-SCENE_SPEED = 100.0
+SCENE_SPEED = 80.0
 
 ROAD_1 = 600
 
@@ -19,7 +19,7 @@ class BaseModel(peewee.Model):
         database = db
 
 class User(BaseModel):
-    name = peewee.CharField()
+    name = peewee.CharField(unique=True)
     max_score = peewee.IntegerField()
 
 db.connect()
@@ -132,7 +132,7 @@ class Enemy(EntScene):
             case 3:
                 texture = r"cars\brown_cart.png" #Se eu deixar isso aq dps vou ter dor de cabeça <----------------------------------
 
-        super().__init__(texture, scale, speed)
+        super().__init__(texture, scale * 0.9 , speed)
 
     
     def update(self, delta):
@@ -147,14 +147,14 @@ class Enemy(EntScene):
 
 class Player(Entity):           
     def __init__(self):
-        super().__init__("player.png", 1.8, 300.0)
+        super().__init__("player.png", 1.5, 300.0)
 
         self.move_left : bool = False
         self.move_right : bool = False
         self.move_up : bool = False
         self.move_down : bool = False
 
-        self.acceleration : float = 1.0
+        self.acceleration : float = 3.0
         
 
     def handle_key_press(self, key):
@@ -191,7 +191,7 @@ class Player(Entity):
         self.change_y = lerp(self.change_y, self.direction.y * self.speed, 2 * delta)
 
 class GameScene(arcade.View):
-    def __init__(self, max_score : int = 0):
+    def __init__(self, max_score : int = 0, nickname : str = ""):
         super().__init__()
 
         arcade.set_background_color(arcade.color.GRAY)
@@ -202,6 +202,8 @@ class GameScene(arcade.View):
         self.player.position = (SCREEN_WIDTH / 2, 100.0)
         self.score = 0
         self.max_score = max_score
+        self.nickname = nickname
+        print(f"Nickname: {self.nickname}, Max Score: {self.max_score}")
 
         self.rua = Road("Assets/road2.png")
         self.rua.center_x = SCREEN_WIDTH // 2
@@ -230,7 +232,7 @@ class GameScene(arcade.View):
         for obj in self.obj_list:
             if isinstance(obj, Enemy) and arcade.check_for_collision(self.player, obj):
                 self.player.remove_from_sprite_lists()
-                self.window.show_view(GameOverView(self.score, self.max_score))
+                self.window.show_view(GameOverView(self.score, max_score=self.max_score, nickname=self.nickname))
 
         if self.rua.top < 0.0:
             self.rua.bottom = self.rua2.top - 100
@@ -288,19 +290,21 @@ class GameScene(arcade.View):
     def on_key_press(self, key, modifiers):
         self.player.handle_key_press(key)
         if key == arcade.key.ESCAPE:
-            start_view = StartView()
+            start_view = StartView(max_score=self.max_score, nickname=self.nickname)
             self.window.show_view(start_view)
         elif key == arcade.key.R:
-            game_scene = GameScene(self.max_score)
+            game_scene = GameScene(max_score=self.max_score, nickname=self.nickname)
             self.window.show_view(game_scene)
     
     def on_key_release(self, key, modifiers):
         self.player.handle_key_release(key)
     
 class StartView(arcade.View):
-    def __init__(self, window = None, background_color = arcade.color.GRAY):
+    def __init__(self, window = None, background_color = arcade.color.GRAY, is_login = False, max_score = 0, nickname = ""):
         super().__init__(window, background_color)
-        self.is_login = False
+        self.is_login = is_login
+        self.max_score = max_score
+        self.nickname = nickname
     
     def on_draw(self):
         self.clear()
@@ -318,19 +322,101 @@ class StartView(arcade.View):
 
             text.draw()
         else:
-            pass
+            text = arcade.Text(
+                text="Digite seu nickname para jogar",
+                x=SCREEN_WIDTH // 2,
+                y=SCREEN_HEIGHT // 2,
+                color=arcade.color.GREEN,
+                font_size=100,
+                anchor_x="center",
+                anchor_y="center",
+            )
+
+            text.draw()
+
+            text_nickname = arcade.Text(
+                text=self.nickname,
+                x=SCREEN_WIDTH // 2,
+                y=SCREEN_HEIGHT // 2 - 100,
+                color=arcade.color.GREEN,
+                font_size=50,
+                anchor_x="center",
+                anchor_y="center",
+            )
+            text_nickname.draw()
+
+    def on_key_press(self, key, modifiers):
+        if self.is_login:
+            if (key == arcade.key.J or key == arcade.key.ENTER):
+                game_scene = GameScene(max_score=self.max_score, nickname=self.nickname)
+                self.window.show_view(game_scene)
+        else:
+            if key == arcade.key.ENTER:
+                if self.nickname.strip() == "":
+                    return
+                self.is_login = True
+                self.nickname = self.nickname.strip()
+                user = User.get_or_none(User.name == self.nickname)
+                if user is None:
+                    User.create(name=self.nickname, max_score=0)
+            elif key == arcade.key.BACKSPACE:
+                self.nickname = self.nickname[:-1]
+
+    def on_text(self, text):
+        if not self.is_login:
+            self.nickname += text
+
+class RankingView(arcade.View):
+    def __init__(self, window = None, background_color = arcade.color.GRAY, max_score = 0, nickname = ""):
+        super().__init__(window, background_color)
+        self.nickname = nickname
+        self.max_score = max_score
+        self.top_10 = search_top_10()
+    
+    def on_draw(self):
+        self.clear()
+
+        title_txt = arcade.Text(
+            "Ranking Top 10",
+            SCREEN_WIDTH // 2,
+            SCREEN_HEIGHT - 100,
+            arcade.color.GREEN,
+            100,
+            anchor_x="center",
+            anchor_y="center"
+        )
+        title_txt.draw()
+
+        for i, user in enumerate(self.top_10):
+            user_txt = arcade.Text(
+                f"{i + 1}. {user.name} - {user.max_score}",
+                SCREEN_WIDTH // 2,
+                SCREEN_HEIGHT - 200 - (i * 50),
+                arcade.color.GREEN,
+                50,
+                anchor_x="center",
+                anchor_y="center"
+            )
+            user_txt.draw()
     
     def on_key_press(self, key, modifiers):
-        if (key == arcade.key.J or key == arcade.key.ENTER) and self.is_login:
-            game_scene = GameScene()
-            self.window.show_view(game_scene)
+        if key == arcade.key.ESCAPE:
+            start_view = StartView(max_score=self.max_score, nickname=self.nickname)
+            self.window.show_view(start_view)
 
 class GameOverView(arcade.View):
-    def __init__(self, score, max_score):
+    def __init__(self, score, max_score = 0, nickname = ""):
         super().__init__(window = None, background_color = arcade.color.GRAY)
         self.score = score
         self.max_score = max_score
-    
+        self.nickname = nickname
+        print("Game Over")
+        print(self.nickname)
+        self.user = User.get_or_none(User.name == self.nickname)
+        if self.user is not None and self.score > self.user.max_score:
+            self.user.max_score = self.score
+            self.user.save()
+
     def on_draw(self):
         self.clear()
 
@@ -347,26 +433,36 @@ class GameOverView(arcade.View):
             txt_motivation = f"Parabéns! Seu novo recorde é {self.score}!"
             self.max_score = self.score
 
+        #aaaaaaaaaaaaa
+
         motivation_txt = arcade.Text(
             txt_motivation,
             SCREEN_WIDTH // 2 - 400, SCREEN_HEIGHT // 2  - 200, arcade.color.GREEN, 40
         )
+        ranking_infm_txt = arcade.Text(
+            "Pressione [T] para ver o ranking",
+            SCREEN_WIDTH // 2 - 400, SCREEN_HEIGHT // 2  - 300, arcade.color.GREEN, 40
+        )
+
         start_txt.draw()
         motivation_txt.draw()
+        ranking_infm_txt.draw()
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.J or key == arcade.key.ENTER:
-            game_scene = GameScene(self.max_score)
+            game_scene = GameScene(max_score=self.max_score, nickname=self.nickname)
             self.window.show_view(game_scene)
 
+        if key == arcade.key.T:
+            ranking_view = RankingView(max_score=self.max_score, nickname=self.nickname)
+            self.window.show_view(ranking_view)
 
 def execute():
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, title="Frog streak")
     
-    start_view = StartView()
+    start_view = StartView(max_score=0, nickname="")
 
     window.show_view(start_view)
-    
     arcade.run()
 
 if __name__ == "__main__":
