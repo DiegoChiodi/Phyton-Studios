@@ -102,7 +102,7 @@ class EntScene(Entity):
             self.bottom = 0
             self.on_exit_window()
 
-class Road(EntScene):
+class Landscape(EntScene):
     def check_exit_y(self):
         pass
 
@@ -155,7 +155,7 @@ class Player(Entity):
         self.move_down : bool = False
 
         self.acceleration : float = 3.0
-        
+        self.dying : bool = False
 
     def handle_key_press(self, key):
         if key == arcade.key.A or key == arcade.key.LEFT:
@@ -190,6 +190,13 @@ class Player(Entity):
         self.change_x = lerp(self.change_x, self.direction.x * self.speed, 2 * delta)
         self.change_y = lerp(self.change_y, self.direction.y * self.speed, 2 * delta)
 
+        if self.center_x < 500:
+            self.center_x = 500
+            self.change_x = 0
+        elif self.center_x > 1400:
+            self.center_x = 1400
+            self.change_x = 0
+
 class GameScene(arcade.View):
     def __init__(self, max_score : int = 0, nickname : str = ""):
         super().__init__()
@@ -198,6 +205,10 @@ class GameScene(arcade.View):
 
         self.obj_list = arcade.SpriteList()
 
+        
+
+        self.player_dead = False
+
         self.player = Player()
         self.player.position = (SCREEN_WIDTH / 2, 100.0)
         self.score = 0
@@ -205,19 +216,62 @@ class GameScene(arcade.View):
         self.nickname = nickname
         print(f"Nickname: {self.nickname}, Max Score: {self.max_score}")
 
-        self.rua = Road("Assets/road2.png")
+        self.rua = Landscape("Assets/road2.png")
         self.rua.center_x = SCREEN_WIDTH // 2
         self.rua.bottom = 0
 
-        self.rua2 = Road("Assets/road2.png")
+        self.rua2 = Landscape("Assets/road2.png")
         self.rua2.center_x = SCREEN_WIDTH // 2
         self.rua2.bottom = self.rua.top
+
+        self.landscape_l_1 = Landscape("Assets/landscape.png")
+        self.landscape_l_1.left = 0
+        self.landscape_l_1.bottom = 0
+
+        self.landscape_r_1 = Landscape("Assets/landscape.png")
+        self.landscape_r_1.right = SCREEN_WIDTH
+        self.landscape_r_1.bottom = 0
+
+        self.landscape_l_2 = Landscape("Assets/landscape.png")
+        self.landscape_l_2.left = 0
+        self.landscape_l_2.bottom = self.landscape_l_1.top
+
+        self.landscape_r_2 = Landscape("Assets/landscape.png")
+        self.landscape_r_2.right = SCREEN_WIDTH
+        self.landscape_r_2.bottom = self.landscape_r_1.top
 
         self.obj_list.append(self.rua)
         self.obj_list.append(self.rua2)
         self.obj_list.append(self.player)
 
+        self.obj_list.append(self.landscape_l_1)
+        self.obj_list.append(self.landscape_r_1)
+        self.obj_list.append(self.landscape_l_2)
+        self.obj_list.append(self.landscape_r_2)
+
+        landscape_scale = 5.0
+
+        self.landscape_r_1.scale = landscape_scale
+        self.landscape_l_1.scale = landscape_scale
+        self.landscape_r_2.scale = landscape_scale
+        self.landscape_l_2.scale = landscape_scale
+
+        self.landscape_r_1.scale_x = -1 * landscape_scale
+        self.landscape_r_2.scale_x = -1 * landscape_scale
+
+        self.explosion = EntScene("Assets/explosion.png", 1.0, 0.0)
+        self.obj_list.append(self.explosion)
+        self.explosion.visible = False
+
     def on_update(self, delta_time):
+        if self.player_dead:
+            self.explosion.scale = tuple(
+                value * 1.15 for value in self.explosion.scale
+            )
+            if self.explosion.scale[0] > 20.0:
+                self.window.show_view(GameOverView(self.score, max_score=self.max_score, nickname=self.nickname))
+            return
+        
         self.obj_list.update(delta_time)         
 
         self.spawn_frogs()
@@ -231,14 +285,26 @@ class GameScene(arcade.View):
 
         for obj in self.obj_list:
             if isinstance(obj, Enemy) and arcade.check_for_collision(self.player, obj):
-                self.player.remove_from_sprite_lists()
-                self.window.show_view(GameOverView(self.score, max_score=self.max_score, nickname=self.nickname))
-
+                self.player_dead = True
+                self.explosion.position = self.player.position
+                self.explosion.visible = True
         if self.rua.top < 0.0:
             self.rua.bottom = self.rua2.top - 100
 
         if self.rua2.top < 0.0:
             self.rua2.bottom = self.rua.top - 100
+
+        if self.landscape_l_1.top < 0.0:
+            self.landscape_l_1.bottom = self.landscape_l_2.top
+
+        if self.landscape_l_2.top < 0.0:
+            self.landscape_l_2.bottom = self.landscape_l_1.top
+
+        if self.landscape_r_1.top < 0.0:
+            self.landscape_r_1.bottom = self.landscape_r_2.top
+
+        if self.landscape_r_2.top < 0.0:
+            self.landscape_r_2.bottom = self.landscape_r_1.top
 
     def on_draw(self):
         self.clear()
