@@ -216,7 +216,7 @@ class GameScene(arcade.View):
         self.nickname = nickname
         print(f"Nickname: {self.nickname}, Max Score: {self.max_score}")
 
-        self.cam.position = self.player.position
+        self.cam.x = self.player.center_x
 
         self.rua = Landscape("Assets/road2.png")
         self.rua.center_x = SCREEN_WIDTH // 2
@@ -270,10 +270,12 @@ class GameScene(arcade.View):
                 value * 1.1 for value in self.explosion.scale
             )
             if self.explosion.scale[0] > 50.0:
+                self.cam.x = SCREEN_WIDTH / 2
+                self.cam.y = SCREEN_HEIGHT / 2
+
                 self.window.show_view(GameOverView(self.score, max_score=self.max_score, nickname=self.nickname))
 
             self.shake_camera(delta_time)
-    
             return
         
 
