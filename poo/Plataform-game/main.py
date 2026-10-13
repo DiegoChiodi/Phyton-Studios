@@ -256,6 +256,8 @@ class GameSceneBase(arcade.View):
 
         arcade.set_background_color(arcade.color.SKY_BLUE)
 
+        self.cam = arcade.Camera2D()
+
         self.obj_list = arcade.SpriteList()
 
         self.player = Player()
@@ -322,9 +324,11 @@ class GameSceneBase(arcade.View):
         if self.time <= 0.0:
             self.phys_perm = False
             self.time = 0.0
+    
 
     def on_draw(self):
         self.clear()
+        self.cam.use()
         self.obj_list.draw()
         self.list_blocks.draw()
 

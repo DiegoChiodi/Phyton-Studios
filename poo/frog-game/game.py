@@ -205,7 +205,7 @@ class GameScene(arcade.View):
 
         self.obj_list = arcade.SpriteList()
 
-        
+        self.cam = arcade.Camera2D()
 
         self.player_dead = False
 
@@ -216,10 +216,11 @@ class GameScene(arcade.View):
         self.nickname = nickname
         print(f"Nickname: {self.nickname}, Max Score: {self.max_score}")
 
+        self.cam.position = self.player.position
+
         self.rua = Landscape("Assets/road2.png")
         self.rua.center_x = SCREEN_WIDTH // 2
         self.rua.bottom = 0
-
         self.rua2 = Landscape("Assets/road2.png")
         self.rua2.center_x = SCREEN_WIDTH // 2
         self.rua2.bottom = self.rua.top
@@ -266,14 +267,17 @@ class GameScene(arcade.View):
     def on_update(self, delta_time):
         if self.player_dead:
             self.explosion.scale = tuple(
-                value * 1.15 for value in self.explosion.scale
+                value * 1.1 for value in self.explosion.scale
             )
-            if self.explosion.scale[0] > 20.0:
+            if self.explosion.scale[0] > 50.0:
                 self.window.show_view(GameOverView(self.score, max_score=self.max_score, nickname=self.nickname))
+
+            self.shake_camera(delta_time)
+    
             return
         
-        self.obj_list.update(delta_time)         
 
+        self.obj_list.update(delta_time)         
         self.spawn_frogs()
         self.spawn_enemy()
 
@@ -308,6 +312,7 @@ class GameScene(arcade.View):
 
     def on_draw(self):
         self.clear()
+        self.cam.use()
         self.obj_list.draw()
         score_txt = arcade.Text(str(self.score), 50, SCREEN_HEIGHT - 50, arcade.color.WHITE, 25)
         score_txt.draw()
@@ -351,7 +356,8 @@ class GameScene(arcade.View):
             enemy.angle = enemy_angle
             self.obj_list.append(enemy)
 
-        
+    def shake_camera(self, delta):
+        self.cam.position += Vec2(random.randint(-10, 10), random.randint(-10, 10)) * 10
     
     def on_key_press(self, key, modifiers):
         self.player.handle_key_press(key)
